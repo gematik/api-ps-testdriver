@@ -1,0 +1,31 @@
+documentation 0https://plantuml.com/wbs-diagram
+@startwbs
++ /
+++ Patient
+++- ReadVSD
++++ Medication
+++++ Medication Service
+++++-[#pink] EML Abruf
++++++ EMP
+++++++[#pink] Add
+++++++[#pink] Remove
+++++++[#pink] Change
+++++-[#pink] Query Consent Decision
++++- Verschreibung
+++- EAU
+++ Configuration
+++-[#skyBlue] List all values
+++-[#skyBlue] Put value
++++[#skyBlue] Read Value
++++[#skyBlue] Delete Value
+++ Actions
++++[#skyBlue] Action xyz (EMP Abruf)
+++++[#skyBlue] zb. Liste der Verschreibungen
+
+legend right
+    |Color| Type |
+    | | Knoten |
+    |<#skyBlue>| Synchron (direktes Ergebnis) |
+    |<#pink>| Asynchron (generiert eine neue Aktion) |
+endlegend
+@endwbs
