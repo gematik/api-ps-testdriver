@@ -1,31 +1,48 @@
 documentation 0https://plantuml.com/wbs-diagram
 @startwbs
+<style>
+wbsDiagram {
+  .async {
+      BackgroundColor pink
+  }
+  .sync {
+      BackgroundColor SkyBlue
+  }
+  .optional {
+      LineStyle 9
+  }
+  .future {
+      LineStyle 2
+      LineThickness .5
+      BackgroundColor White
+  }
+}
+</style>
+
 + /
+++ system
++++ start <<optional>>
 ++ Patient
 ++- ReadVSD
 +++ Medication
 ++++ Medication Service
-++++-[#pink] EML Abruf
-+++++ EMP
-++++++[#pink] Add
-++++++[#pink] Remove
-++++++[#pink] Change
-++++-[#pink] Query Consent Decision
-+++- Verschreibung
-++- EAU
-++ Configuration
-++-[#skyBlue] List all values
-++-[#skyBlue] Put value
-+++[#skyBlue] Read Value
-+++[#skyBlue] Delete Value
+++++- EML Abruf <<async>>
++++++ EMP <<future>>
+++++++ Add <<future>>
+++++++ Remove <<future>>
+++++++ Change <<future>>
+++++- Query Consent Decision <<future>>
++++- Verschreibung <<future>>
+++- EAU <<future>>
 ++ Actions
 +++[#skyBlue] Action xyz (EMP Abruf)
-++++[#skyBlue] zb. Liste der Verschreibungen
+++++[#skyBlue]  zb. Liste der Verschreibungen <<future>>
 
-legend right
-    |Color| Type |
-    | | Knoten |
+legend
+    | Farbe | Bedeutung |
+    | | Knoten (Keine Operation) |
     |<#skyBlue>| Synchron (direktes Ergebnis) |
     |<#pink>| Asynchron (generiert eine neue Aktion) |
-endlegend
+    |<<future>>| Zukünftig angedacht |
+end legend
 @endwbs

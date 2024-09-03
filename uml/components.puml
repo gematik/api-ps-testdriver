@@ -1,0 +1,24 @@
+@startuml
+skinparam component {
+  backgroundColor<<tiger>> orange
+  backgroundColor<<System under test>> lightblue
+}
+
+[Testsuite] <<tiger>>
+() "PS Testdriver API" as testdriver
+[Primärsystem] as PS <<System under test>>
+[Tiger Proxy] as TP <<tiger>>
+[Konnektor]
+[Kartenterminal] as ct
+cloud TI
+
+note top of Konnektor: Nicht im scope der API.
+
+Testsuite -right-> testdriver
+testdriver -right-> PS
+PS -right-> TP
+TP <-> Konnektor
+TP .left.> Testsuite
+Konnektor -> TI
+Konnektor -down-> ct
+@enduml
