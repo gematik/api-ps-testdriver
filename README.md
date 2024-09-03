@@ -40,14 +40,12 @@ klingt eher nach MQ, SSE oder STOMP. REST wird hier vor allem aus Gründen der E
 soll so einfach wie möglich sein. REST ist ein bekanntes Paradigma, das von vielen Entwicklern verstanden wird und 
 von vielen Tools unterstützt wird. Im Interesse der Einfachheit wird daher auf REST gesetzt.
 
-### Infrastruktur
+### Test-Setup
 
-* Infrastruktur ist auch ansprechbar. Zb Kartenterminal (oder Konnektor etc...).
-* Die Testsuite definiert die Namen. (KartenterminalA, KartenterminalB, Konnektor)
-* In der Testsuite kann direkt eine URL für jede Komponente hinterlegt werden.
-** Alternativ wäre es schön, wenn über das PS direkt eine Liste abgefragt werden kann und das Testsetup automatisiert "entdeckt" werden kann
-* Für die Komponenten existieren eigene Testtreiber-APIs (zb Admin-Schnittstelle für Konnektor...)
-* Wenn keine Schnittstelle vorhanden ist (oder keine automatisierung umgesetzt wurde) muss die angeforderte Aktion schriftlich in der UI der Testsuite beschrieben werden (zb: "EGK an Kartenterminal A jetzt einstecken")
+![ComponentsDiagramme](uml/readme_sequence_sketch.png)
+
+Die Testsuite startet. Beim Start muss die Adresse des Primärsystems, besser gesagt der Testtreiber-API des Primärsystems, konfiguiert sein.
+
 
 ## Ablauf von Aktionen
 
@@ -71,8 +69,16 @@ Der folgende Baum ist noch KEINE konkrete REST-Struktur. Es geht hier um die gro
 
 ![ComponentsDiagramme](uml/readme_action_tree.png)
 
-* Frage zu klären: Wie gehen wir mit Fehlerhaften Ergebnissen um?
-* Frage zu klären: "Fehlerkonfiguration" (zb. schon abgelaufener Timer von 25 Stunden ohne 25 Stunden zu warten)
+## Infrastruktur
+
+Wird momentan noch nicht betrachtet. Zukünftig:
+
+* Infrastruktur ist auch ansprechbar. Zb Kartenterminal (oder Konnektor etc...).
+* Die Testsuite definiert die Namen. (KartenterminalA, KartenterminalB, Konnektor)
+* In der Testsuite kann direkt eine URL für jede Komponente hinterlegt werden.
+  ** Alternativ wäre es schön, wenn über das PS direkt eine Liste abgefragt werden kann und das Testsetup automatisiert "entdeckt" werden kann
+* Für die Komponenten existieren eigene Testtreiber-APIs (zb Admin-Schnittstelle für Konnektor...)
+* Wenn keine Schnittstelle vorhanden ist (oder keine automatisierung umgesetzt wurde) muss die angeforderte Aktion schriftlich in der UI der Testsuite beschrieben werden (zb: "EGK an Kartenterminal A jetzt einstecken")
 
 ## License
 
