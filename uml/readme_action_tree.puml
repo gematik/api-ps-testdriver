@@ -21,9 +21,9 @@ wbsDiagram {
 
 + /
 ++ system
-+++ start <<optional>>
++++ reset
 ++ Patient
-++- ReadVSD
+++- Insert EGK
 +++ Medication
 ++++ Medication Service
 ++++- EML Abruf <<async>>
