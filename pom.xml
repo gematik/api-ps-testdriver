@@ -2,9 +2,9 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.example</groupId>
+    <groupId>de.gematik.test</groupId>
     <artifactId>ps-testdriver-api</artifactId>
-    <version>0.1.0</version>
+    <version>0.3.0</version>
     <packaging>jar</packaging>
 
     <name>ps-testdriver-api</name>
@@ -46,6 +46,12 @@
             <artifactId>jackson-databind-nullable</artifactId>
             <version>0.2.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.36</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -66,8 +72,8 @@
                         <configuration>
                             <inputSpec>psTestdriver.yaml</inputSpec>
                             <generatorName>spring</generatorName>
-                            <apiPackage>com.example.api</apiPackage>
-                            <modelPackage>com.example.model</modelPackage>
+                            <apiPackage>de.gematik.test.pstestdriver.api</apiPackage>
+                            <modelPackage>de.gematik.test.pstestdriver.model</modelPackage>
                             <configOptions>
                                 <additionalModelTypeAnnotations>@lombok.Builder @lombok.NoArgsConstructor @lombok.AllArgsConstructor</additionalModelTypeAnnotations>
                                 <delegatePattern>true</delegatePattern>

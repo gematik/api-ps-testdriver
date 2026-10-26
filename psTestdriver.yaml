@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: PS-Testdriver API
   description: This API is exposed by a Primärsystem (PS, primary system) to allow the automated execution of tests.
-  version: 0.1.0
+  version: 0.3.0
 tags:
   - name: Optional
     description: These are optional operations. They are triggered by the testsuite, but are not required for the test to pass.
@@ -14,21 +14,6 @@ tags:
 servers:
   - url: 'http'
 paths:
-  /system/start:
-    post:
-      summary: Start the Primärsystem
-      tags:
-        - Optional
-      operationId: start-primaersystem
-      responses:
-        '201':
-          $ref: '#/components/responses/action-created'
-        '400':
-          $ref: '#/components/responses/bad-request'
-        '500':
-          $ref: '#/components/responses/server-error'
-        '501':
-          $ref: '#/components/responses/not-implemented'
   /system/reset:
     post:
       summary: Resets the Primärsystem. This operation is used to reset the Primärsystem to a clean state. More detail
@@ -40,7 +25,7 @@ paths:
       requestBody:
         required: true
         content:
-          'application/gematik.psTestdriver.v0.1.0+json':
+          'application/gematik.psTestdriver.v0.3.0+json':
             schema:
               $ref: '#/components/schemas/reset-primaersystem'
       responses:
@@ -48,6 +33,48 @@ paths:
           $ref: '#/components/responses/action-created'
         '400':
           $ref: '#/components/responses/bad-request'
+        '500':
+          $ref: '#/components/responses/server-error'
+        '501':
+          $ref: '#/components/responses/not-implemented'
+  /system/configuration/konnektor:
+    post:
+      summary: Set the Konnektor configuration for the PS. Overrides any administrator-set configuration
+        for the duration of the test run. Only test environments (tu, ru) are accepted;
+        requests specifying env=pu shall be rejected with 400.
+      tags:
+        - Optional
+      operationId: set-konnektor-config
+      requestBody:
+        required: true
+        content:
+          'application/gematik.psTestdriver.v0.3.0+json':
+            schema:
+              $ref: '#/components/schemas/konnektor-config'
+      responses:
+        '200':
+          description: Konnektor configuration accepted and applied
+        '400':
+          $ref: '#/components/responses/bad-request'
+        '500':
+          $ref: '#/components/responses/server-error'
+        '501':
+          $ref: '#/components/responses/not-implemented'
+    get:
+      summary: Retrieve the current Konnektor configuration of the PS. All credential
+        secret values (passwords, key material) are masked in the response.
+      tags:
+        - Optional
+      operationId: get-konnektor-config
+      responses:
+        '200':
+          description: Current Konnektor configuration
+          content:
+            'application/gematik.psTestdriver.v0.3.0+json':
+              schema:
+                $ref: '#/components/schemas/konnektor-config-response'
+        '404':
+          description: No Konnektor configuration has been set via this API
         '500':
           $ref: '#/components/responses/server-error'
         '501':
@@ -63,7 +90,7 @@ paths:
       requestBody:
         required: true
         content:
-          'application/gematik.psTestdriver.v0.1.0+json':
+          'application/gematik.psTestdriver.v0.3.0+json':
             schema:
               $ref: '#/components/schemas/insert-egk'
       responses:
@@ -84,7 +111,7 @@ paths:
       requestBody:
         required: true
         content:
-          'application/gematik.psTestdriver.v0.1.0+json':
+          'application/gematik.psTestdriver.v0.3.0+json':
             schema:
               $ref: '#/components/schemas/eml-retrieval'
       responses:
@@ -104,7 +131,7 @@ paths:
         '200':
           description: A list of active actions
           content:
-            'application/gematik.psTestdriver.v0.1.0+json':
+            'application/gematik.psTestdriver.v0.3.0+json':
               schema:
                 type: array
                 items:
@@ -128,28 +155,9 @@ paths:
         '200':
           description: Action retrieved
           content:
-            'application/gematik.psTestdriver.v0.1.0+json':
+            'application/gematik.psTestdriver.v0.3.0+json':
               schema:
                 $ref: '#/components/schemas/action'
-        '404':
-          description: Action not found
-        '500':
-          description: Internal server error
-    delete:
-      summary: Delete an action by its id
-      tags:
-        - Mandatory
-      operationId: delete-action
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '204':
-          description: Action deleted
         '404':
           description: Action not found
         '500':
@@ -196,15 +204,11 @@ components:
           $ref: '#/components/schemas/status'
         type:
           type: string
-          enum: [ 'retrieve-emp','start-primaersystem','read-vsd' ]
+          enum: [ 'retrieve-eml','reset-primaersystem','insert-egk','set-konnektor-config' ]
           description: Type of the action
         requestUrl:
           type: string
           description: URL of the initial request
-        retrieveEmpData:
-          type: object
-          additionalProperties: true
-          description: Additional data relevant to an 'retrieve-emp' action
         error:
           $ref: '#/components/schemas/error-message'
     error-message:
@@ -216,10 +220,10 @@ components:
         id:
           type: string
           format: uuid
-          description: Identifier for the specific error (Could be used to look up the error in a log file)
+          description: Identifier for the specific error (Can be used to look up the error in a log file)
         details:
           type: string
-          description: Detailed error message
+          description: Detailed error message (Should be useful for the PS-developers)
       required:
         - message
         - id
@@ -250,10 +254,142 @@ components:
             type: string
             format: kvnr
           description: Forget all data associated with the given KVNRs.
+    konnektor-config:
+      type: object
+      description: Konnektor configuration in the gematik .kon format. Only test environments
+        (tu, ru) are accepted; pu will be rejected.
+      required: [ version, url, mandantId, workplaceId, clientSystemId, credentials ]
+      properties:
+        version:
+          type: string
+          description: Version of the .kon configuration format.
+          example: '1.0.0'
+        url:
+          type: string
+          format: uri
+          description: Base URL of the Konnektor, including protocol, host and port.
+            Used as the base for the Service Directory call (/connector.sds).
+          example: 'https://konnektor.example.com:8443'
+        rewriteServiceEndpoints:
+          type: boolean
+          default: false
+          description: When true, endpoint URLs returned by the Konnektor Service Directory
+            are ignored and reconstructed from the base url. Required when the Konnektor
+            is behind a reverse proxy or NAT.
+        mandantId:
+          type: string
+          description: Mandant-ID from the Konnektor info model. Used as call context.
+        workplaceId:
+          type: string
+          description: Workplace-ID from the Konnektor info model. Used as call context.
+        clientSystemId:
+          type: string
+          description: Client-System-ID from the Konnektor info model. Used as call context.
+        userId:
+          type: string
+          description: Optional. User-ID of the HBA holder. Used as call context.
+        telematikId:
+          type: string
+          description: Optional. Telematik-ID of the card this client is configured for.
+            Helps select the correct smartcard.
+        credentials:
+          $ref: '#/components/schemas/konnektor-credentials'
+        env:
+          type: string
+          enum: [ 'ru', 'tu' ]
+          description: Test environment the Konnektor operates in. ru=Referenzumgebung,
+            tu=Testumgebung. pu (Produktivumgebung) is explicitly prohibited via this API.
+        insecureSkipVerify:
+          type: boolean
+          default: false
+          description: When true, TLS verification is disabled. For test purposes only.
+        expectedHost:
+          type: string
+          description: Optional. Expected FQDN/hostname in the Konnektor certificate
+            (Subject or SAN). Use when the certificate hostname differs from the URL hostname.
+        trustStore:
+          type: array
+          description: Optional. Certificates used to verify the Konnektor's TLS certificate.
+            Both EE and CA certificates are accepted.
+          items:
+            type: string
+            format: byte
+            description: Base64-encoded DER certificate.
+    konnektor-config-response:
+      description: Current Konnektor configuration as active on the PS. Identical to
+        konnektor-config except that all credential secret values are masked.
+      allOf:
+        - $ref: '#/components/schemas/konnektor-config'
+        - type: object
+          properties:
+            credentials:
+              $ref: '#/components/schemas/konnektor-credentials-masked'
+    konnektor-credentials:
+      description: Credentials for authenticating against the Konnektor.
+      oneOf:
+        - $ref: '#/components/schemas/konnektor-credentials-basic'
+        - $ref: '#/components/schemas/konnektor-credentials-pkcs12'
+        - $ref: '#/components/schemas/konnektor-credentials-system'
+      discriminator:
+        propertyName: type
+        mapping:
+          basic: '#/components/schemas/konnektor-credentials-basic'
+          pkcs12: '#/components/schemas/konnektor-credentials-pkcs12'
+          system: '#/components/schemas/konnektor-credentials-system'
+    konnektor-credentials-basic:
+      type: object
+      description: HTTP Basic authentication credentials.
+      required: [ type, username, password ]
+      properties:
+        type:
+          type: string
+          enum: [ 'basic' ]
+        username:
+          type: string
+        password:
+          type: string
+          description: Password. May reference an environment variable using ${VAR_NAME} syntax.
+    konnektor-credentials-pkcs12:
+      type: object
+      description: TLS client certificate credentials in PKCS#12 format.
+      required: [ type, data ]
+      properties:
+        type:
+          type: string
+          enum: [ 'pkcs12' ]
+        data:
+          type: string
+          format: byte
+          description: Base64-encoded PKCS#12 container.
+        password:
+          type: string
+          description: Optional password for the PKCS#12 container. Only permitted in
+            non-production environments (ru, tu).
+    konnektor-credentials-system:
+      type: object
+      description: Delegates credential retrieval to the OS credential store.
+      required: [ type, name ]
+      properties:
+        type:
+          type: string
+          enum: [ 'system' ]
+        name:
+          type: string
+          description: Name of the entry in the OS credential store.
+    konnektor-credentials-masked:
+      type: object
+      description: Credential type indicator only. Secret values are redacted in API responses.
+      required: [ type ]
+      properties:
+        type:
+          type: string
+          enum: [ 'basic', 'pkcs12', 'system' ]
+          description: The credential type that is configured. Secret fields are not returned.
     kvnr:
       type: string
-      pattern: '^[A-Z][0-9]{19-30}$'
-      description: Krankenversicherungsnummer (KVNR)
+      pattern: '^[A-Z][0-9]{10}$'
+      description: Krankenversicherungsnummer (KVNR). Dies ist nur die Nummer des Versicherten, nicht die gesamte KVNR.
+      example: Z1234567890
     eml-type:
       type: string
       enum: [ 'xhtml', 'pdf', 'fhir' ]
@@ -270,24 +406,24 @@ components:
           schema:
             type: string
       content:
-        'application/gematik.psTestdriver.v0.1.0+json':
+        'application/gematik.psTestdriver.v0.3.0+json':
           schema:
             $ref: '#/components/schemas/action'
     bad-request:
       description: Bad request
       content:
-        'application/gematik.psTestdriver.v0.1.0+json':
+        'application/gematik.psTestdriver.v0.3.0+json':
           schema:
             $ref: '#/components/schemas/error-message'
     server-error:
       description: Internal server error
       content:
-        'application/gematik.psTestdriver.v0.1.0+json':
+        'application/gematik.psTestdriver.v0.3.0+json':
           schema:
             $ref: '#/components/schemas/error-message'
     not-implemented:
       description: The requested operation is not implemented
       content:
-        'application/gematik.psTestdriver.v0.1.0+json':
+        'application/gematik.psTestdriver.v0.3.0+json':
           schema:
             $ref: '#/components/schemas/error-message'
